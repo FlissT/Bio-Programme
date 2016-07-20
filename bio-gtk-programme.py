@@ -130,10 +130,12 @@ class TrFrame(Gtk.Bin):
         self.add(self.tr_box)
 
         self.entry = self.builder.get_object("Transl-entry")
-        self.button = self.builder.get_object("Transl-button")
+        self.button1 = self.builder.get_object("Transl-button")
+        self.button2 = self.builder.get_object("Codon-button")
         self.label = self.builder.get_object("Transl-result")
-        self.button.connect("clicked", self.clicked_callback)
+        self.button1.connect("clicked", self.clicked_callback1)
         self.entry.connect("activate", self.enter_callback)
+        self.button2.connect("clicked", self.clicked_callback2)
         
 
     def translation(self): #translates sequence into protein
@@ -142,9 +144,17 @@ class TrFrame(Gtk.Bin):
         tr_result = mrna.translate()
         self.label.set_text(str(tr_result))
 
-    def clicked_callback(self, button): #runs function when button is clicked
+    def clicked_callback1(self, button1): #runs function when button is clicked
         self.translation()
-        
+
+    def codon(self):
+        from Bio.Data import CodonTable
+        standard_table = CodonTable.unambiguous_dna_by_name["Standard"]
+        self.label.set_text(str(standard_table))
+
+    def clicked_callback2(self, button2):
+        self.codon()
+                            
     def enter_callback(self, widget): #runs function when enter pressed
         self.translation()
 
@@ -161,6 +171,7 @@ class EnFrame(Gtk.Bin):
         self.entry = self.builder.get_object("Entrez-entry")
         self.button = self.builder.get_object("Entrez-button")
         self.label = self.builder.get_object("Entrez-result")
+        self.label1 = self.builder.get_object("Entrez-result1")
         self.button.connect("clicked", self.clicked_callback)
         self.fbox = self.builder.get_object("Entrez-file")
         #self.fbox.connect("file_set", self.on_file_selected)        
@@ -175,10 +186,11 @@ class EnFrame(Gtk.Bin):
         en_result = SeqIO.read(entry_text, "fasta")
         #self.label.set_text(str("Written to file 'bio-gtk-entrez.txt'"))
         #SeqIO.write(en_result, "bio-gtk-entrez.txt", "fasta")
-        self.label.set_text(str(en_result.seq))
+        self.label.set_text(str(en_result.id))
+        self.label1.set_text(str(en_result.seq))
         
         print(en_result.id)
-        print(en_result.seq)
+        #print(en_result.seq)
         
     def clicked_callback(self, button): #runs function when button is clicked
         self.entrez_db()
