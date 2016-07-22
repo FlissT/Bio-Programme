@@ -2,6 +2,7 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib
 from Bio import Entrez, SeqIO
+Entrez.email = "A.N.Other@example.com" 
 from Bio.Seq import Seq
 from Bio.SeqUtils import GC
 from Bio.Alphabet import IUPAC
@@ -170,27 +171,34 @@ class EnFrame(Gtk.Bin):
 
         self.entry = self.builder.get_object("Entrez-entry")
         self.button = self.builder.get_object("Entrez-button")
+        self.label_e = self.builder.get_object("Entrez-label")
         self.label = self.builder.get_object("Entrez-result")
         self.label1 = self.builder.get_object("Entrez-result1")
         self.button.connect("clicked", self.clicked_callback)
         self.fbox = self.builder.get_object("Entrez-file")
-        #self.fbox.connect("file_set", self.on_file_selected)        
+        self.fbox.connect("file_set", self.on_file_selected)        
         self.entry.connect("activate", self.enter_callback)
 
-    #def on_file_selected(self, entry): 
-     #   print ("you chose")
-        
+    def on_file_selected(self, entry): #opens file
+        file = open(self.fbox.get_filename())
+        tv = Gtk.TextView()
+        tv.get_buffer().set_text(file.read())
+        sw = Gtk.ScrolledWindow()
+        sw.set_size_request(400, 400)
+        sw.add(tv)
+        w = Gtk.Window()
+        w.add(sw)
+        w.show_all()
         
     def entrez_db(self): #finds details from Entrez database
         entry_text = Entrez.efetch(db = "nucleotide", id = [self.entry.get_text()], rettype = "fasta")
         en_result = SeqIO.read(entry_text, "fasta")
-        #self.label.set_text(str("Written to file 'bio-gtk-entrez.txt'"))
-        #SeqIO.write(en_result, "bio-gtk-entrez.txt", "fasta")
-        self.label.set_text(str(en_result.id))
+        self.label_e.set_text(str("Written to file (Entrez ID)"))
+        SeqIO.write(en_result, en_result.id, "fasta")
+        self.label.set_text(str(en_result.description))
         self.label1.set_text(str(en_result.seq))
-        
         print(en_result.id)
-        #print(en_result.seq)
+            
         
     def clicked_callback(self, button): #runs function when button is clicked
         self.entrez_db()
@@ -213,25 +221,26 @@ class MyWindow(Gtk.Window):
 
         self.set_title("Bio Programme")
                           
+        en_box = EnFrame()
         sl_box = LnFrame()
         cm_box = CmFrame()
         gc_box = GcFrame()
         rc_box = RcFrame()
         tr_box = TrFrame()
-        en_box = EnFrame()
-
+        
+        nbook.append_page(en_box)
         nbook.append_page(sl_box)
         nbook.append_page(cm_box)
         nbook.append_page(gc_box)
         nbook.append_page(rc_box)
         nbook.append_page(tr_box)
-        nbook.append_page(en_box)
+        
+        nbook.set_tab_label_text(en_box, "Entrez Database")
         nbook.set_tab_label_text(sl_box, "Sequence Length")
         nbook.set_tab_label_text(cm_box, "Sequence Comparison")
         nbook.set_tab_label_text(gc_box, "GC Content")
         nbook.set_tab_label_text(rc_box, "Reverse Complement")
         nbook.set_tab_label_text(tr_box, "Translate Sequence")
-        nbook.set_tab_label_text(en_box, "Entrez Database")
         self.add(vbox)
         
         self.show_all()
