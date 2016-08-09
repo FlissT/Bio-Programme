@@ -1,4 +1,5 @@
 #CRASHES WHEN TRYING TO GET LARGE FILES FROM ENTREZ
+#Entrez page isn't linked to liststore
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -6,6 +7,7 @@ from gi.repository import Gtk
 from Bio import Entrez, SeqIO
 Entrez.email = "A.N.Other@example.com" 
 from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord 
 from Bio.SeqUtils import GC
 from Bio.Alphabet import IUPAC, Gapped
 
@@ -114,7 +116,6 @@ class GcFrame(Gtk.Bin):
 
     def clicked_callback(self, button): #runs function when button is clicked
         self.gc_content()
-
         
 
 class RcFrame(Gtk.Bin):
@@ -144,19 +145,17 @@ class RcFrame(Gtk.Bin):
         iterator = self.cbox.get_active_iter()
         seq_id = self.seq_liststore.get_value(iterator, 0)
         seq = self.open_sequences[seq_id]
-        rc_result = seq.reverse_complement()
-        if len(rc_result) < 30:
-            self.label.set_text(str(rc_result))
-        else:
-            tv = Gtk.TextView()
-            tv.get_buffer().set_text(str(rc_result))
-            tv.set_editable(False)          
-            sw = Gtk.ScrolledWindow()
-            sw.set_size_request(300,200)
-            sw.add(tv)
-            w = Gtk.Window()
-            w.add(sw)
-            w.show_all()
+        rc_result = seq.reverse_complement()                
+        
+        tv = Gtk.TextView()
+        tv.get_buffer().set_text(str(rc_result))
+        tv.set_editable(False)          
+        sw = Gtk.ScrolledWindow()
+        sw.set_size_request(300,200)
+        sw.add(tv)
+        w = Gtk.Window()                                                                                                                                                                                                                                                
+        w.add(sw)
+        w.show_all()
 
     def clicked_callback(self, button): #runs function when button is clicked
         self.rev_comp()
@@ -192,18 +191,16 @@ class TrFrame(Gtk.Bin):
         seq = self.open_sequences[seq_id]
         mrna = seq.transcribe()
         tr_result = mrna.translate()
-        if len(tr_result) < 100:
-            self.label.set_text(str(tr_result))
-        else:
-            tv = Gtk.TextView()
-            tv.get_buffer().set_text(str(tr_result))
-            tv.set_editable(False)          
-            sw = Gtk.ScrolledWindow()
-            sw.set_size_request(300,200)
-            sw.add(tv)
-            w = Gtk.Window()
-            w.add(sw)
-            w.show_all()
+
+        tv = Gtk.TextView()
+        tv.get_buffer().set_text(str(tr_result))
+        tv.set_editable(False)          
+        sw = Gtk.ScrolledWindow()
+        sw.set_size_request(300,200)
+        sw.add(tv)
+        w = Gtk.Window()
+        w.add(sw)
+        w.show_all()
 
     def clicked_callback1(self, button1): #runs function when button is clicked
         self.translation()
@@ -215,59 +212,6 @@ class TrFrame(Gtk.Bin):
 
     def clicked_callback2(self, button2):
         self.codon()
-
-
-class EnFrame(Gtk.Bin):
-    def __init__(self, open_sequences, seq_liststore):
-        Gtk.Bin.__init__(self)
-
-        self.open_sequences = open_sequences
-        self.seq_liststore = seq_liststore
-
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file("entrez-page-glade.glade")
-        self.en_box = self.builder.get_object("Entrez-box")
-        self.add(self.en_box)
-
-        self.entry = self.builder.get_object("Entrez-entry")
-        self.button = self.builder.get_object("Entrez-button")
-        self.label_e = self.builder.get_object("Entrez-label")
-        self.label = self.builder.get_object("Entrez-result")
-        self.label1 = self.builder.get_object("Entrez-result1")
-        self.button.connect("clicked", self.clicked_callback)
-        self.fbox = self.builder.get_object("Entrez-file")
-        self.fbox.connect("file_set", self.on_file_selected)        
-
-        #renderer = Gtk.CellRendererText()
-        #self.cbox.pack_start(renderer, True)
-        #self.cbox.add_attribute(renderer, "text", 0)
-        #self.cbox.set_model(seq_liststore)
-
-    def on_file_selected(self, entry): #opens file in window
-        file = open(self.fbox.get_filename())
-        tv = Gtk.TextView()
-        tv.get_buffer().set_text(file.read())
-        tv.set_editable(False)
-        sw = Gtk.ScrolledWindow()
-        sw.set_size_request(400, 400)
-        sw.add(tv)
-        w = Gtk.Window()
-        w.add(sw)
-        w.show_all()
-        self.open_sequences.append([self.fbox.get_filename()]) #adds filename to liststore
-    
-        
-    def entrez_db(self): #finds details from Entrez database
-        entry_text = Entrez.efetch(db = "nucleotide", id = [self.entry.get_text()], rettype = "fasta")
-        en_result = SeqIO.read(entry_text, "fasta")
-        self.label_e.set_text(str("Written to file (Entrez ID)"))
-        SeqIO.write(en_result, en_result.id, "fasta")
-        self.label.set_text(str(en_result.description))
-        self.label1.set_text(str(en_result.seq))       
-        
-    def clicked_callback(self, button): #runs function when button is clicked
-        self.entrez_db()
-
 
 class OsFrame(Gtk.Bin): #opens sequences for later use
     def __init__(self, open_sequences, seq_liststore):
@@ -284,7 +228,14 @@ class OsFrame(Gtk.Bin): #opens sequences for later use
 
         self.cbox = self.builder.get_object("Open-cbox")
         self.fbox = self.builder.get_object("Open-file")
-        self.fbox.connect("file_set", self.on_file_selected)        
+        self.fbox.connect("file_set", self.on_file_selected)
+
+        self.entry = self.builder.get_object("Entrez-entry")
+        self.button = self.builder.get_object("Entrez-button")
+        self.label_e = self.builder.get_object("Entrez-label")
+        self.label = self.builder.get_object("Entrez-result")
+        self.label1 = self.builder.get_object("Entrez-result1")
+        self.button.connect("clicked", self.clicked_callback)
 
         renderer = Gtk.CellRendererText()
         self.cbox.pack_start(renderer, True)
@@ -295,11 +246,21 @@ class OsFrame(Gtk.Bin): #opens sequences for later use
     def on_file_selected(self, entry): #opens a file and adds it to list store
         file = open(self.fbox.get_filename())
         for seq_record in SeqIO.parse(file, "fasta"):
-            # Add the id and sequence to the sequences dict
-            self.open_sequences[seq_record.id] = seq_record.seq
-            # Add the id to the liststore so we can look it up later
-            self.seq_liststore.append([seq_record.id])
-        
+            self.open_sequences[seq_record.id] = seq_record.seq # Add the id and sequence to the sequences dict
+            self.seq_liststore.append([seq_record.id]) # Add the id to the liststore so we can look it up later
+
+
+    def entrez_db(self): #finds details from Entrez database
+        entry_text = Entrez.efetch(db = "nucleotide", id = [self.entry.get_text()], rettype = "fasta")
+        en_result = SeqIO.read(entry_text, "fasta")
+        self.label_e.set_text(str("Written to file (Entrez ID)"))
+        SeqIO.write(en_result, en_result.id, "fasta")
+        self.label.set_text(str("Open file"))
+        self.label1.set_text(str(en_result.description))
+
+
+    def clicked_callback(self, button): #runs function when button is clicked
+        self.entrez_db()
         
 class MyWindow(Gtk.Window):
     
@@ -319,7 +280,7 @@ class MyWindow(Gtk.Window):
         self.set_title("Bio Programme")
                           
         os_box = OsFrame(self.open_sequences, self.seq_liststore)
-        en_box = EnFrame(self.open_sequences, self.seq_liststore)
+        #en_box = EnFrame(self.open_sequences, self.seq_liststore)
         sl_box = LnFrame(self.open_sequences, self.seq_liststore)
         cm_box = CmFrame(self.open_sequences, self.seq_liststore)
         gc_box = GcFrame(self.open_sequences, self.seq_liststore)
@@ -327,15 +288,15 @@ class MyWindow(Gtk.Window):
         tr_box = TrFrame(self.open_sequences, self.seq_liststore)
         
         nbook.append_page(os_box)
-        nbook.append_page(en_box)
+       # nbook.append_page(en_box)
         nbook.append_page(sl_box)
         nbook.append_page(cm_box)
         nbook.append_page(gc_box)
         nbook.append_page(rc_box)
         nbook.append_page(tr_box)
         
-        nbook.set_tab_label_text(os_box, "Open Sequences")
-        nbook.set_tab_label_text(en_box, "Entrez Database")
+        nbook.set_tab_label_text(os_box, "Get Sequences")
+       # nbook.set_tab_label_text(en_box, "Entrez Database")
         nbook.set_tab_label_text(sl_box, "Sequence Length")
         nbook.set_tab_label_text(cm_box, "Sequence Comparison")
         nbook.set_tab_label_text(gc_box, "GC Content")
