@@ -2,7 +2,7 @@
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
+from gi.repository import Gtk, Pango
 from Bio import Entrez, SeqIO, Medline
 Entrez.email = "A.N.Other@example.com" 
 from Bio.SeqUtils import GC
@@ -146,12 +146,19 @@ class RcFrame(Gtk.Bin):
         rc_result = seq.reverse_complement()                
         
         tv = Gtk.TextView()
-        tv.get_buffer().set_text(str(rc_result))
-        tv.set_editable(False)          
+        tb = tv.get_buffer()
+        tb.set_text(str(rc_result))
+        tag = tb.create_tag("bold", weight=Pango.Weight.BOLD)
+        start = tb.get_start_iter()
+        end = tb.get_end_iter()
+        tb.apply_tag(tag, start, end)
+        tv.set_editable(False)
+        tv.set_justification(Gtk.Justification.FILL)
+        tv.set_wrap_mode(Gtk.WrapMode.CHAR)
         sw = Gtk.ScrolledWindow()
         sw.set_size_request(300,200)
         sw.add(tv)
-        w = Gtk.Window()                                                                                                                                                                                                                                                
+        w = Gtk.Window(title = "Reverse Complement Result")                                                                                                                                                                                                                                                
         w.add(sw)
         w.show_all()
 
@@ -194,12 +201,19 @@ class TrFrame(Gtk.Bin):
             self.label.set_text("Warning, incomplete codon")
 
         tv = Gtk.TextView()
-        tv.get_buffer().set_text(str(tr_result))
-        tv.set_editable(False)          
+        tb = tv.get_buffer()
+        tb.set_text(str(tr_result))
+        tag = tb.create_tag("bold", weight=Pango.Weight.BOLD)
+        start = tb.get_start_iter()
+        end = tb.get_end_iter()
+        tb.apply_tag(tag, start, end)
+        tv.set_editable(False)
+        tv.set_justification(Gtk.Justification.FILL)
+        tv.set_wrap_mode(Gtk.WrapMode.CHAR)
         sw = Gtk.ScrolledWindow()
         sw.set_size_request(200,100)
         sw.add(tv)
-        w = Gtk.Window()
+        w = Gtk.Window(title = "Translation Result")
         w.add(sw)
         w.show_all()
 
@@ -259,10 +273,10 @@ class OsFrame(Gtk.Bin): #opens sequences for later use
         SeqIO.write(en_result, en_result.id, "fasta")
         self.label.set_text(str("Open file"))
         self.label1.set_text(str(en_result.description))
-
-
+        
     def clicked_callback(self, button): #runs function when button is clicked
         self.entrez_db()
+        
 
 class PbFrame(Gtk.Bin): #opens sequences for later use
     def __init__(self):
@@ -270,7 +284,7 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
         Gtk.Bin.__init__(self)
 
         self.builder = Gtk.Builder()
-        self.builder.add_from_file("pubmed-page-glade.glade")
+        self.builder.add_from_file("pubmed-page.glade")
         self.pb_box = self.builder.get_object("Pbmd-box")
         self.add(self.pb_box)
 
@@ -279,13 +293,14 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
         self.label1 = self.builder.get_object("Pbmd-label")
         self.label = self.builder.get_object("Pbmd-result")
         self.button.connect("clicked", self.clicked_callback)
+
                 
-    def pbmd_search(self): #searches pubmed database
+    def pbmd_search(self): #searches pubmed database, using Biopython documentation
         handle = Entrez.egquery(term=self.entry.get_text())
         record = Entrez.read(handle)
         for row in record["eGQueryResult"]:
             if row["DbName"]=="pubmed":
-                print(row["Count"])
+                self.label.set_text(str(row["Count"]) + " records returned")
 
         handle = Entrez.esearch(db="pubmed", term=self.entry.get_text(), retmax=1000)
         record = Entrez.read(handle)
@@ -294,17 +309,32 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
         handle = Entrez.efetch(db="pubmed", id=idlist, rettype="medline", retmode="text")
         records = Medline.parse(handle)
         records = list(records)
-        
-        for record in records: #want to get this bit in a Gtk.TextView
-            print("title:", record.get("TI", "?"))
-            print("authors:", record.get("AU", "?"))
-            print("source:", record.get("SO", "?"))
-            print("")
+
+        records_str = []
+        tv = Gtk.TextView()
+        for record in records:
+            records_str+=("Title: ", record.get("TI"),"Authors: ", record.get("AU"),"Source: ", record.get("SO"),(""))
             
+        
+        tb = tv.get_buffer()
+        tb.set_text(str(records_str))
+        tag = tb.create_tag("bold", weight=Pango.Weight.BOLD)
+        start = tb.get_start_iter()
+        end = tb.get_end_iter()
+        tb.apply_tag(tag, start, end)
+        tv.set_editable(False)
+        tv.set_justification(Gtk.Justification.FILL)
+        tv.set_wrap_mode(Gtk.WrapMode.WORD)
+        sw = Gtk.ScrolledWindow()
+        sw.set_size_request(300,400)
+        sw.add(tv)
+        w = Gtk.Window(title ="Pubmed Results")                                                                                                                                                                                                                                                
+        w.add(sw)
+        w.show_all()
 
     def clicked_callback(self, button): #runs function when button is clicked
         self.pbmd_search()
-        
+
         
 class MyWindow(Gtk.Window):
     
