@@ -8,7 +8,7 @@
     <property name="orientation">vertical</property>
     <property name="homogeneous">True</property>
     <child>
-      <object class="GtkButtonBox" id="Open-buttonbox">
+      <object class="GtkButtonBox" id="Pbmd-buttonbox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="halign">center</property>
