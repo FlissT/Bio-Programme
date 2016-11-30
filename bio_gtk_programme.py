@@ -313,11 +313,10 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
         records_str = []
         tv = Gtk.TextView()
         for record in records:
-            records_str+=("Title: ", record.get("TI"),"Authors: ", record.get("AU"),"Source: ", record.get("SO"),(""))
+            records_str += "Title: %s \nAuthors: %s \nSource: %s\n\n" %(record.get("TI"), ", ".join(record.get("AU")), record.get("SO"))
             
-        
         tb = tv.get_buffer()
-        tb.set_text(str(records_str))
+        tb.set_text("".join(records_str))
         tag = tb.create_tag("bold", weight=Pango.Weight.BOLD)
         start = tb.get_start_iter()
         end = tb.get_end_iter()
