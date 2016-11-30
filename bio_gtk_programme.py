@@ -161,6 +161,10 @@ class RcFrame(Gtk.Bin):
         w = Gtk.Window(title = "Reverse Complement Result")                                                                                                                                                                                                                                                
         w.add(sw)
         w.show_all()
+        self.connect("delete-event", self.on_quit)
+        
+    def on_quit(self, widget, event):
+        Gtk.main_quit() 
 
     def clicked_callback(self, button): #runs function when button is clicked
         self.rev_comp()
@@ -216,6 +220,10 @@ class TrFrame(Gtk.Bin):
         w = Gtk.Window(title = "Translation Result")
         w.add(sw)
         w.show_all()
+        self.connect("delete-event", self.on_quit)  
+
+    def on_quit(self, widget, event):
+        Gtk.main_quit()
 
     def clicked_callback1(self, button1): #runs function when button is clicked
         self.translation()
@@ -284,7 +292,7 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
         Gtk.Bin.__init__(self)
 
         self.builder = Gtk.Builder()
-        self.builder.add_from_file("pubmed-page.glade")
+        self.builder.add_from_file("pbmd-search.glade")
         self.pb_box = self.builder.get_object("Pbmd-box")
         self.add(self.pb_box)
 
@@ -292,29 +300,38 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
         self.button = self.builder.get_object("Pbmd-button")
         self.label1 = self.builder.get_object("Pbmd-label")
         self.label = self.builder.get_object("Pbmd-result")
+        self.label2 = self.builder.get_object("Pbmd-result1")
+        self.bbox = self.builder.get_object("Pbmd-buttonbox")
         self.button.connect("clicked", self.clicked_callback)
 
+        self.entry1 = self.builder.get_object("Pbmd-entry1")
+        self.button1 = self.builder.get_object("Pbmd-button1")
+        self.button1.connect("clicked", self.clicked_callback)
+
+        self.checkbutton = self.builder.get_object("checkbutton")
+        self.checkbutton.set_mode(draw_indicator=True)
+        self.button1.connect("clicked", self.clicked_callback1)
                 
     def pbmd_search(self): #searches pubmed database, using Biopython documentation
         handle = Entrez.egquery(term=self.entry.get_text())
-        record = Entrez.read(handle)
-        for row in record["eGQueryResult"]:
+        self.record = Entrez.read(handle)
+        for row in self.record["eGQueryResult"]:
             if row["DbName"]=="pubmed":
                 self.label.set_text(str(row["Count"]) + " records returned")
 
         handle = Entrez.esearch(db="pubmed", term=self.entry.get_text(), retmax=1000)
-        record = Entrez.read(handle)
-        idlist = record["IdList"]
+        self.record = Entrez.read(handle)
+        idlist = self.record["IdList"]
         
         handle = Entrez.efetch(db="pubmed", id=idlist, rettype="medline", retmode="text")
-        records = Medline.parse(handle)
-        records = list(records)
-
+        self.records = Medline.parse(handle)
+        self.records = list(self.records)
+        
         records_str = []
         tv = Gtk.TextView()
-        for record in records:
-            records_str += "Title: %s \nAuthors: %s \nSource: %s\n\n" %(record.get("TI"), ", ".join(record.get("AU")), record.get("SO"))
-            
+        for self.record in self.records:
+            records_str += "Title: %s \nAuthors: %s \nSource: %s\n\n" %(self.record.get("TI"), ", ".join(self.record.get("AU")), self.record.get("SO"))
+            #this causes a typeerror when some words are searched e.g. heart, lung
         tb = tv.get_buffer()
         tb.set_text("".join(records_str))
         tag = tb.create_tag("bold", weight=Pango.Weight.BOLD)
@@ -325,15 +342,40 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
         tv.set_justification(Gtk.Justification.FILL)
         tv.set_wrap_mode(Gtk.WrapMode.WORD)
         sw = Gtk.ScrolledWindow()
-        sw.set_size_request(300,400)
+        sw.set_size_request(800,300)
         sw.add(tv)
         w = Gtk.Window(title ="Pubmed Results")                                                                                                                                                                                                                                                
         w.add(sw)
-        w.show_all()
+        self.connect("delete-event", self.on_quit)
+        
+        def on_button_toggled(checkbutton, name):
+            if checkbutton.get_active():
+                state = "on"
+                if state == "on":
+                    w.show_all() #only does this once, if turned off and on again, w is empty
+            else:
+                state = "off"
+        self.checkbutton.connect("toggled", on_button_toggled, "1")
+
+    def on_quit(self, widget, event):
+        Gtk.main_quit()
+
+    def search(self):
+        search_author = self.entry1.get_text()
+        #print(search_author)
+        for self.record in self.records:
+            if not "AU" in self.record:
+                continue
+            if search_author in self.record["AU"]:
+                self.label2.set_text("Author %s found: %s" % (search_author, self.record["SO"]))
+            if search_author not in self.record["AU"]:
+                self.label2.set_text("Not found")
+    
 
     def clicked_callback(self, button): #runs function when button is clicked
         self.pbmd_search()
-
+    def clicked_callback1(self, button1):
+        self.search()
         
 class MyWindow(Gtk.Window):
     
