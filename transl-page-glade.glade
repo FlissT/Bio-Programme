@@ -16,7 +16,8 @@
         <property name="layout_style">center</property>
         <child>
           <object class="GtkButton" id="Transl-button">
-            <property name="label" translatable="yes">Translate Sequence </property>
+            <property name="label" translatable="yes">Translate 
+Sequence </property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
@@ -29,7 +30,8 @@
         </child>
         <child>
           <object class="GtkButton" id="Codon-button">
-            <property name="label" translatable="yes">Translation Table</property>
+            <property name="label" translatable="yes">Translation 
+    Table</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
