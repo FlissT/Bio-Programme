@@ -6,8 +6,6 @@ from gi.repository import Gtk, Pango
 from Bio import Entrez, SeqIO, Medline
 Entrez.email = "A.N.Other@example.com" 
 from Bio.SeqUtils import GC
-from Bio.Alphabet import IUPAC
-
 
 class LnFrame(Gtk.Bin):
     def __init__(self, open_sequences, seq_liststore):
@@ -15,17 +13,15 @@ class LnFrame(Gtk.Bin):
 
         self.open_sequences = open_sequences
         self.seq_liststore = seq_liststore
-        
         self.builder = Gtk.Builder()
         self.builder.add_from_file("seqlen-page-glade.glade")
         self.sl_box = self.builder.get_object("SeqLen-box")
         self.add(self.sl_box)
-    
         self.cbox = self.builder.get_object("SeqLen-cbox")
-        self.button = self.builder.get_object("SeqLen-button")
         self.label = self.builder.get_object("SeqLen-result")
+        self.button = self.builder.get_object("SeqLen-button")
         self.button.connect("clicked", self.clicked_callback)
-
+        
         renderer = Gtk.CellRendererText()
         self.cbox.pack_start(renderer, True)
         self.cbox.add_attribute(renderer, "text", 0)
@@ -38,7 +34,6 @@ class LnFrame(Gtk.Bin):
         len_result = len(seq)
         self.label.set_markup("Sequence <b>%s</b> is " %(seq_id) + str(len_result) + " bases long.")
         
-        
     def clicked_callback(self, button): #runs function when button is clicked
         self.seq_len()
         
@@ -49,16 +44,14 @@ class CmFrame(Gtk.Bin):
 
         self.open_sequences = open_sequences
         self.seq_liststore = seq_liststore
-
         self.builder = Gtk.Builder()
         self.builder.add_from_file("seqcomp-page-glade.glade")
         self.cm_box = self.builder.get_object("SeqComp-box")
         self.add(self.cm_box)
-
         self.cbox1 = self.builder.get_object("SeqComp-cbox1")
         self.cbox2 = self.builder.get_object("SeqComp-cbox2")
-        self.button = self.builder.get_object("SeqComp-button")
         self.label = self.builder.get_object("SeqComp-result")
+        self.button = self.builder.get_object("SeqComp-button")
         self.button.connect("clicked", self.clicked_callback)
         
         renderer = Gtk.CellRendererText()
@@ -79,7 +72,6 @@ class CmFrame(Gtk.Bin):
         comp_result = ((seq1) == (seq2))
         self.label.set_text(str(comp_result))
 
-
     def clicked_callback(self, button): #runs function when button is clicked
         self.seq_comp()
         
@@ -90,15 +82,13 @@ class GcFrame(Gtk.Bin):
 
         self.open_sequences = open_sequences
         self.seq_liststore = seq_liststore
-
         self.builder = Gtk.Builder()
         self.builder.add_from_file("gc-page-glade.glade")
         self.gc_box = self.builder.get_object("GC-box")
         self.add(self.gc_box)
-
         self.cbox = self.builder.get_object("GC-cbox")
-        self.button = self.builder.get_object("GC-button")
         self.label = self.builder.get_object("GC-result")
+        self.button = self.builder.get_object("GC-button")
         self.button.connect("clicked", self.clicked_callback)
         
         renderer = Gtk.CellRendererText()
@@ -123,28 +113,25 @@ class RcFrame(Gtk.Bin):
 
         self.open_sequences = open_sequences
         self.seq_liststore = seq_liststore
-        
         self.builder = Gtk.Builder()
         self.builder.add_from_file("revcomp-page-glade.glade")
         self.rc_box = self.builder.get_object("RevComp-box")
         self.add(self.rc_box)
-
         self.cbox = self.builder.get_object("RevComp-cbox")
-        self.button = self.builder.get_object("RevComp-button")
         self.label = self.builder.get_object("RevComp-result")
+        self.button = self.builder.get_object("RevComp-button")
         self.button.connect("clicked", self.clicked_callback)
-
+        
         renderer = Gtk.CellRendererText()
         self.cbox.pack_start(renderer, True)
         self.cbox.add_attribute(renderer, "text", 0)
         self.cbox.set_model(seq_liststore)
 
-    
     def rev_comp(self): #gives the reverse complement of DNA sequence
         iterator = self.cbox.get_active_iter()
         seq_id = self.seq_liststore.get_value(iterator, 0)
         seq = self.open_sequences[seq_id]
-        rc_result = seq.reverse_complement()                
+        rc_result = seq.reverse_complement()
         
         tv = Gtk.TextView()
         tb = tv.get_buffer()
@@ -177,19 +164,17 @@ class TrFrame(Gtk.Bin):
 
         self.open_sequences = open_sequences
         self.seq_liststore = seq_liststore
-
         self.builder = Gtk.Builder()
         self.builder.add_from_file("transl-page-glade.glade")
         self.tr_box = self.builder.get_object("Transl-box")
         self.add(self.tr_box)
-
         self.cbox = self.builder.get_object("Transl-cbox")
-        self.button1 = self.builder.get_object("Transl-button")
-        self.button2 = self.builder.get_object("Codon-button")
         self.label = self.builder.get_object("Transl-result")
+        self.button1 = self.builder.get_object("Transl-button")
         self.button1.connect("clicked", self.clicked_callback1)
+        self.button2 = self.builder.get_object("Codon-button")
         self.button2.connect("clicked", self.clicked_callback2)
-
+        
         renderer = Gtk.CellRendererText()
         self.cbox.pack_start(renderer, True)
         self.cbox.add_attribute(renderer, "text", 0)
@@ -201,7 +186,6 @@ class TrFrame(Gtk.Bin):
         seq = self.open_sequences[seq_id]
         mrna = seq.transcribe()
         tr_result = mrna.translate()
-
         if len(mrna) % 3 != 0:
             self.label.set_text("Warning, incomplete codon")
 
@@ -245,23 +229,19 @@ class OsFrame(Gtk.Bin): #opens sequences for later use
 
         self.open_sequences = open_sequences
         self.seq_liststore = seq_liststore
-
         self.builder = Gtk.Builder()
         self.builder.add_from_file("openseq-page.glade")
         self.os_box = self.builder.get_object("Open-box")
         self.add(self.os_box)
-
         self.cbox = self.builder.get_object("Open-cbox")
         self.fbox = self.builder.get_object("Open-file")
         self.fbox.connect("file_set", self.on_file_selected)
-
         self.entry = self.builder.get_object("Entrez-entry")
         self.button = self.builder.get_object("Entrez-button")
-        self.label_e = self.builder.get_object("Entrez-label")
-        self.label = self.builder.get_object("Entrez-result")
-        self.label1 = self.builder.get_object("Entrez-result1")
         self.button.connect("clicked", self.clicked_callback)
-
+        self.label = self.builder.get_object("Entrez-label")
+        self.label1 = self.builder.get_object("Entrez-label1")
+        
         renderer = Gtk.CellRendererText()
         self.cbox.pack_start(renderer, True)
         self.cbox.add_attribute(renderer, "text", 0)
@@ -274,17 +254,16 @@ class OsFrame(Gtk.Bin): #opens sequences for later use
             self.open_sequences[seq_record.id] = seq_record.seq # Add the id and sequence to the sequences dict
             self.seq_liststore.append([seq_record.id]) # Add the id to the liststore so we can look it up later
 
-
     def entrez_db(self): #finds details from Entrez database
         entry_text = Entrez.efetch(db = "nucleotide", id = [self.entry.get_text()], rettype = "fasta")
         en_result = SeqIO.read(entry_text, "fasta")
-        self.label_e.set_text(str("Written to file (Entrez ID)"))
+        self.label1.set_text(str("Written to file (%s)") % (en_result.id))
         SeqIO.write(en_result, en_result.id, "fasta")
-        self.label.set_text(str("Open file"))
-        self.label1.set_text(str(en_result.description))
+        self.label.set_text(str(en_result.description))
         
     def clicked_callback(self, button): #runs function when button is clicked
         self.entrez_db()
+        
 
 class PbFrame(Gtk.Bin): #opens sequences for later use
     def __init__(self):
@@ -295,19 +274,16 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
         self.builder.add_from_file("pbmd-search.glade")
         self.pb_box = self.builder.get_object("Pbmd-box")
         self.add(self.pb_box)
-
-        self.entry = self.builder.get_object("Pbmd-entry")
-        self.button = self.builder.get_object("Pbmd-button")
-        self.label1 = self.builder.get_object("Pbmd-label")
         self.label = self.builder.get_object("Pbmd-result")
+        self.label1 = self.builder.get_object("Pbmd-label")
         self.label2 = self.builder.get_object("Pbmd-result1")
         self.bbox = self.builder.get_object("Pbmd-buttonbox")
-        self.button.connect("clicked", self.clicked_callback)
-
+        self.entry = self.builder.get_object("Pbmd-entry")
         self.entry1 = self.builder.get_object("Pbmd-entry1")
+        self.button = self.builder.get_object("Pbmd-button")
+        self.button.connect("clicked", self.clicked_callback)
         self.button1 = self.builder.get_object("Pbmd-button1")
         self.button1.connect("clicked", self.clicked_callback1)
-
         self.checkbutton = self.builder.get_object("checkbutton")
         self.checkbutton.set_mode(draw_indicator=True)
         self.checkbutton1 = self.builder.get_object("checkbutton1")
@@ -329,7 +305,6 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
         self.records = list(self.records)
         self.records_str = []
         tv = Gtk.TextView()
-        
         for self.record in self.records:
             self.records_str += "Title: %s \nAuthors: %s \nSource: %s\n\n" %(self.record.get("TI"), ", ".join(self.record.get("AU")), self.record.get("SO"))
             #this causes a typeerror when some words are searched e.g. heart, lung
@@ -366,7 +341,6 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
         author_result = []
         tv = Gtk.TextView()
         tb = tv.get_buffer()
-
         for self.record in self.records:
             if not "AU" in self.record:
                 continue
@@ -403,7 +377,6 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
                 
         self.checkbutton1_connect = self.checkbutton1.connect("toggled", on_button_toggled, "1")
     
-
     def on_quit(self, widget, event):
         Gtk.main_quit()
         
@@ -434,10 +407,8 @@ class MyWindow(Gtk.Window):
         nbook.set_tab_pos(Gtk.PositionType.LEFT)
         nbook.set_scrollable(True)
         vbox.add(nbook)
-
         self.open_sequences = {}
         self.seq_liststore = Gtk.ListStore(str)
-
         self.set_title("Bio Programme")
                           
         os_box = OsFrame(self.open_sequences, self.seq_liststore)
