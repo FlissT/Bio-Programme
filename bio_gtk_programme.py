@@ -36,7 +36,8 @@ class LnFrame(Gtk.Bin):
         seq_id = self.seq_liststore.get_value(iterator, 0)
         seq = (self.open_sequences[seq_id])
         len_result = len(seq)
-        self.label.set_text(str(len_result))
+        self.label.set_markup("Sequence <b>%s</b> is " %(seq_id) + str(len_result) + " bases long.")
+        
         
     def clicked_callback(self, button): #runs function when button is clicked
         self.seq_len()
@@ -109,8 +110,8 @@ class GcFrame(Gtk.Bin):
         iterator = self.cbox.get_active_iter()
         seq_id = self.seq_liststore.get_value(iterator, 0)
         seq = self.open_sequences[seq_id]
-        gc_result = round(GC(seq), 3)
-        self.label.set_text(str(gc_result))
+        gc_result = round(GC(seq), 2)
+        self.label.set_markup(str(gc_result) + " percent of bases in sequence <b>%s</b>" %(seq_id)+ " are G or C.")
 
     def clicked_callback(self, button): #runs function when button is clicked
         self.gc_content()
@@ -158,7 +159,7 @@ class RcFrame(Gtk.Bin):
         sw = Gtk.ScrolledWindow()
         sw.set_size_request(300,200)
         sw.add(tv)
-        w = Gtk.Window(title = "Reverse Complement Result")                                                                                                                                                                                                                                                
+        w = Gtk.Window(title = "Reverse complement result for sequence %s " %(seq_id))                                                                                                                                                                                                                                                
         w.add(sw)
         w.show_all()
         self.connect("delete-event", self.on_quit)
@@ -217,7 +218,7 @@ class TrFrame(Gtk.Bin):
         sw = Gtk.ScrolledWindow()
         sw.set_size_request(200,100)
         sw.add(tv)
-        w = Gtk.Window(title = "Translation Result")
+        w = Gtk.Window(title = "Translation result for sequence %s " %(seq_id))
         w.add(sw)
         w.show_all()
         self.connect("delete-event", self.on_quit)  
@@ -284,7 +285,6 @@ class OsFrame(Gtk.Bin): #opens sequences for later use
         
     def clicked_callback(self, button): #runs function when button is clicked
         self.entrez_db()
-        
 
 class PbFrame(Gtk.Bin): #opens sequences for later use
     def __init__(self):
@@ -306,34 +306,36 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
 
         self.entry1 = self.builder.get_object("Pbmd-entry1")
         self.button1 = self.builder.get_object("Pbmd-button1")
-        self.button1.connect("clicked", self.clicked_callback)
+        self.button1.connect("clicked", self.clicked_callback1)
 
         self.checkbutton = self.builder.get_object("checkbutton")
         self.checkbutton.set_mode(draw_indicator=True)
-        self.button1.connect("clicked", self.clicked_callback1)
+        self.checkbutton1 = self.builder.get_object("checkbutton1")
+        self.checkbutton1.set_mode(draw_indicator=True)
                 
     def pbmd_search(self): #searches pubmed database, using Biopython documentation
-        handle = Entrez.egquery(term=self.entry.get_text())
+        user_input = self.entry.get_text()
+        handle = Entrez.egquery(term=user_input)
         self.record = Entrez.read(handle)
         for row in self.record["eGQueryResult"]:
             if row["DbName"]=="pubmed":
                 self.label.set_text(str(row["Count"]) + " records returned")
-
-        handle = Entrez.esearch(db="pubmed", term=self.entry.get_text(), retmax=1000)
+                
+        handle = Entrez.esearch(db="pubmed", term=user_input, retmax=463)
         self.record = Entrez.read(handle)
         idlist = self.record["IdList"]
-        
         handle = Entrez.efetch(db="pubmed", id=idlist, rettype="medline", retmode="text")
         self.records = Medline.parse(handle)
         self.records = list(self.records)
-        
-        records_str = []
+        self.records_str = []
         tv = Gtk.TextView()
+        
         for self.record in self.records:
-            records_str += "Title: %s \nAuthors: %s \nSource: %s\n\n" %(self.record.get("TI"), ", ".join(self.record.get("AU")), self.record.get("SO"))
+            self.records_str += "Title: %s \nAuthors: %s \nSource: %s\n\n" %(self.record.get("TI"), ", ".join(self.record.get("AU")), self.record.get("SO"))
             #this causes a typeerror when some words are searched e.g. heart, lung
+            
         tb = tv.get_buffer()
-        tb.set_text("".join(records_str))
+        tb.set_text("".join(self.records_str))
         tag = tb.create_tag("bold", weight=Pango.Weight.BOLD)
         start = tb.get_start_iter()
         end = tb.get_end_iter()
@@ -344,38 +346,82 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
         sw = Gtk.ScrolledWindow()
         sw.set_size_request(800,300)
         sw.add(tv)
-        w = Gtk.Window(title ="Pubmed Results")                                                                                                                                                                                                                                                
+        w = Gtk.Window(title ="Pubmed Results %s" %(user_input))                                                                                                                                                                                                                                                   
         w.add(sw)
         self.connect("delete-event", self.on_quit)
         
         def on_button_toggled(checkbutton, name):
-            if checkbutton.get_active():
+            if self.checkbutton.get_active():
                 state = "on"
                 if state == "on":
-                    w.show_all() #only does this once, if turned off and on again, w is empty
+                    w.show_all()
+                    self.disconnect_checkbutton()
             else:
                 state = "off"
-        self.checkbutton.connect("toggled", on_button_toggled, "1")
-
-    def on_quit(self, widget, event):
-        Gtk.main_quit()
+                
+        self.checkbutton_connect = self.checkbutton.connect("toggled", on_button_toggled, "1")
 
     def search(self):
         search_author = self.entry1.get_text()
-        #print(search_author)
+        author_result = []
+        tv = Gtk.TextView()
+        tb = tv.get_buffer()
+
         for self.record in self.records:
             if not "AU" in self.record:
                 continue
             if search_author in self.record["AU"]:
-                self.label2.set_text("Author %s found: %s" % (search_author, self.record["SO"]))
-            if search_author not in self.record["AU"]:
-                self.label2.set_text("Not found")
+                author_result+=("Title: %s \nAuthors: %s \nSource: %s\n\n" %(self.record.get("TI"), ", ".join(self.record.get("AU")), self.record.get("SO")))
+                self.label2.set_text(search_author)
+            else:
+                if search_author not in self.record["AU"]:
+                    self.label2.set_text("Author not found")
+                
+        tb.set_text("".join(author_result))
+        tag = tb.create_tag("bold", weight=Pango.Weight.BOLD)
+        start = tb.get_start_iter()
+        end = tb.get_end_iter()
+        tb.apply_tag(tag, start, end)
+        tv.set_editable(False)
+        tv.set_justification(Gtk.Justification.FILL)
+        tv.set_wrap_mode(Gtk.WrapMode.WORD)
+        sw = Gtk.ScrolledWindow()
+        sw.set_size_request(800,300)
+        sw.add(tv)
+        w = Gtk.Window(title ="Author Search Results for %s" %(search_author))                                                                                                                                                                                                                                                
+        w.add(sw)
+        self.connect("delete-event", self.on_quit)
+
+        def on_button_toggled(checkbutton1, name):
+            if self.checkbutton1.get_active():
+                state = "on"
+                if state == "on":
+                    w.show_all()
+                    self.disconnect_checkbutton1()
+            else:
+                state = "off"
+                
+        self.checkbutton1_connect = self.checkbutton1.connect("toggled", on_button_toggled, "1")
     
+
+    def on_quit(self, widget, event):
+        Gtk.main_quit()
+        
+    def disconnect_checkbutton(self):
+        if self.checkbutton_connect > 0:
+            self.checkbutton.disconnect(self.checkbutton_connect)
+            self.checkbutton_connect = 0
+            
+    def disconnect_checkbutton1(self):
+        if self.checkbutton1_connect > 0:
+            self.checkbutton1.disconnect(self.checkbutton1_connect)
+            self.checkbutton1_connect = 0
 
     def clicked_callback(self, button): #runs function when button is clicked
         self.pbmd_search()
     def clicked_callback1(self, button1):
         self.search()
+        
         
 class MyWindow(Gtk.Window):
     
