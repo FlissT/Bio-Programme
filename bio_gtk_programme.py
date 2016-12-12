@@ -70,7 +70,11 @@ class CmFrame(Gtk.Bin):
         seq_id2 = self.seq_liststore.get_value(iterator2, 0)
         seq2 = self.open_sequences[seq_id2]
         comp_result = ((seq1) == (seq2))
-        self.label.set_text(str(comp_result))
+        if comp_result == True:
+            self.label.set_text(str(comp_result) + ", these sequences match")
+        elif comp_result == False:
+            self.label.set_text(str(comp_result) + ", these sequences do not match")
+        
 
     def clicked_callback(self, button): #runs function when button is clicked
         self.seq_comp()
@@ -101,7 +105,7 @@ class GcFrame(Gtk.Bin):
         seq_id = self.seq_liststore.get_value(iterator, 0)
         seq = self.open_sequences[seq_id]
         gc_result = round(GC(seq), 2)
-        self.label.set_markup(str(gc_result) + " percent of bases in sequence <b>%s</b>" %(seq_id)+ " are G or C.")
+        self.label.set_markup(str(gc_result) + "%% of bases in sequence <b>%s</b>" %(seq_id)+ " are G or C.")
 
     def clicked_callback(self, button): #runs function when button is clicked
         self.gc_content()
