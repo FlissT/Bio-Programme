@@ -125,6 +125,10 @@ class RcFrame(Gtk.Bin):
         self.label = self.builder.get_object("RevComp-result")
         self.button = self.builder.get_object("RevComp-button")
         self.button.connect("clicked", self.clicked_callback)
+        self.checkbutton = self.builder.get_object("checkbutton")
+        self.checkbutton.set_mode(draw_indicator=True)
+        self.checkbutton1 = self.builder.get_object("checkbutton1")
+        self.checkbutton1.set_mode(draw_indicator=True)
         
         renderer = Gtk.CellRendererText()
         self.cbox.pack_start(renderer, True)
@@ -133,13 +137,14 @@ class RcFrame(Gtk.Bin):
 
     def rev_comp(self): #gives the reverse complement of DNA sequence
         iterator = self.cbox.get_active_iter()
-        seq_id = self.seq_liststore.get_value(iterator, 0)
-        seq = self.open_sequences[seq_id]
-        rc_result = seq.reverse_complement()
+        self.seq_id = self.seq_liststore.get_value(iterator, 0)
+        seq = self.open_sequences[self.seq_id]
+        self.rc_result = seq.reverse_complement()
+        self.label.set_text("Tick box for results")
         
         tv = Gtk.TextView()
         tb = tv.get_buffer()
-        tb.set_text(str(rc_result))
+        tb.set_text(str(self.rc_result))
         tag = tb.create_tag("bold", weight=Pango.Weight.BOLD)
         start = tb.get_start_iter()
         end = tb.get_end_iter()
@@ -150,10 +155,45 @@ class RcFrame(Gtk.Bin):
         sw = Gtk.ScrolledWindow()
         sw.set_size_request(300,200)
         sw.add(tv)
-        w = Gtk.Window(title = "Reverse complement result for sequence %s " %(seq_id))                                                                                                                                                                                                                                                
+        w = Gtk.Window(title = "Reverse complement result for sequence %s " %(self.seq_id))                                                                                                                                                                                                                                                
         w.add(sw)
-        w.show_all()
         self.connect("delete-event", self.on_quit)
+
+        def on_button_toggled(checkbutton, name):
+            if self.checkbutton.get_active():
+                state = "on"
+                if state == "on":
+                    w.show_all()
+                    self.disconnect_checkbutton()
+            else:
+                state = "off"
+                
+        self.checkbutton_connect = self.checkbutton.connect("toggled", on_button_toggled, "1")
+
+        def on_button_toggled(checkbutton1, name):
+            if self.checkbutton1.get_active():
+                state = "on"
+                if state == "on":#writes to text file, want to write to fasta file
+                    filename = (self.seq_id + ("-revcomp"))
+                    file_open = open(filename, "w+")
+                    file_open.write(str(self.rc_result))
+                    file_open.close()
+                    self.label.set_text(str("Written to text file %s ") % (filename))
+                    self.disconnect_checkbutton1()
+            else:
+                state = "off"
+                
+        self.checkbutton1_connect = self.checkbutton1.connect("toggled", on_button_toggled, "1")
+
+    def disconnect_checkbutton(self):
+        if self.checkbutton_connect > 0:
+            self.checkbutton.disconnect(self.checkbutton_connect)
+            self.checkbutton_connect = 0
+            
+    def disconnect_checkbutton1(self):
+        if self.checkbutton1_connect > 0:
+            self.checkbutton1.disconnect(self.checkbutton1_connect)
+            self.checkbutton1_connect = 0
         
     def on_quit(self, widget, event):
         Gtk.main_quit() 
@@ -178,6 +218,10 @@ class TrFrame(Gtk.Bin):
         self.button1.connect("clicked", self.clicked_callback1)
         self.button2 = self.builder.get_object("Codon-button")
         self.button2.connect("clicked", self.clicked_callback2)
+        self.checkbutton = self.builder.get_object("checkbutton")
+        self.checkbutton.set_mode(draw_indicator=True)
+        self.checkbutton1 = self.builder.get_object("checkbutton1")
+        self.checkbutton1.set_mode(draw_indicator=True)
         
         renderer = Gtk.CellRendererText()
         self.cbox.pack_start(renderer, True)
@@ -186,16 +230,16 @@ class TrFrame(Gtk.Bin):
         
     def translation(self): #translates sequence into protein
         iterator = self.cbox.get_active_iter()
-        seq_id = self.seq_liststore.get_value(iterator, 0)
-        seq = self.open_sequences[seq_id]
+        self.seq_id = self.seq_liststore.get_value(iterator, 0)
+        seq = self.open_sequences[self.seq_id]
         mrna = seq.transcribe()
-        tr_result = mrna.translate()
+        self.tr_result = mrna.translate()
         if len(mrna) % 3 != 0:
             self.label.set_text("Warning, incomplete codon")
 
         tv = Gtk.TextView()
         tb = tv.get_buffer()
-        tb.set_text(str(tr_result))
+        tb.set_text(str(self.tr_result))
         tag = tb.create_tag("bold", weight=Pango.Weight.BOLD)
         start = tb.get_start_iter()
         end = tb.get_end_iter()
@@ -204,13 +248,48 @@ class TrFrame(Gtk.Bin):
         tv.set_justification(Gtk.Justification.FILL)
         tv.set_wrap_mode(Gtk.WrapMode.CHAR)
         sw = Gtk.ScrolledWindow()
-        sw.set_size_request(200,100)
+        sw.set_size_request(400,300)
         sw.add(tv)
-        w = Gtk.Window(title = "Translation result for sequence %s " %(seq_id))
+        w = Gtk.Window(title = "Translation result for sequence %s " %(self.seq_id))
         w.add(sw)
-        w.show_all()
-        self.connect("delete-event", self.on_quit)  
+        self.connect("delete-event", self.on_quit)
 
+        def on_button_toggled(checkbutton, name):
+            if self.checkbutton.get_active():
+                state = "on"
+                if state == "on":
+                    w.show_all()
+                    self.disconnect_checkbutton()
+            else:
+                state = "off"
+                
+        self.checkbutton_connect = self.checkbutton.connect("toggled", on_button_toggled, "1")
+
+        def on_button_toggled(checkbutton1, name):
+            if self.checkbutton1.get_active():
+                state = "on"
+                if state == "on":
+                    filename = str(self.seq_id + ("-translation"))
+                    file_open = open(filename, "w+")
+                    file_open.write(str(self.tr_result))
+                    file_open.close()
+                    self.label.set_text(str("Written to text file %s ") % (filename))
+                    self.disconnect_checkbutton1()
+            else:
+                state = "off"
+                
+        self.checkbutton1_connect = self.checkbutton1.connect("toggled", on_button_toggled, "1")
+
+    def disconnect_checkbutton(self):
+        if self.checkbutton_connect > 0:
+            self.checkbutton.disconnect(self.checkbutton_connect)
+            self.checkbutton_connect = 0
+
+    def disconnect_checkbutton1(self):
+        if self.checkbutton1_connect > 0:
+            self.checkbutton1.disconnect(self.checkbutton1_connect)
+            self.checkbutton1_connect = 0
+            
     def on_quit(self, widget, event):
         Gtk.main_quit()
 
@@ -261,7 +340,7 @@ class OsFrame(Gtk.Bin): #opens sequences for later use
     def entrez_db(self): #finds details from Entrez database
         entry_text = Entrez.efetch(db = "nucleotide", id = [self.entry.get_text()], rettype = "fasta")
         en_result = SeqIO.read(entry_text, "fasta")
-        self.label1.set_text(str("Written to file (%s)") % (en_result.id))
+        self.label1.set_text(str("Written to file (%s) ") % (en_result.id))
         SeqIO.write(en_result, en_result.id, "fasta")
         self.label.set_text(str(en_result.description))
         
