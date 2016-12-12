@@ -28,6 +28,42 @@
           </packing>
         </child>
         <child>
+          <object class="GtkCheckButton" id="checkbutton">
+            <property name="label" translatable="yes">Tick for
+ results</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="valign">center</property>
+            <property name="xalign">0</property>
+            <property name="draw_indicator">True</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+            <property name="non_homogeneous">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="checkbutton1">
+            <property name="label" translatable="yes">Write to
+ text file</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="valign">center</property>
+            <property name="xalign">0</property>
+            <property name="draw_indicator">True</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+            <property name="non_homogeneous">True</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkButton" id="Codon-button">
             <property name="label" translatable="yes">Translation Table</property>
             <property name="visible">True</property>
@@ -37,7 +73,7 @@
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">3</property>
           </packing>
         </child>
       </object>
@@ -91,7 +127,7 @@
         <property name="margin_left">3</property>
         <property name="margin_right">3</property>
         <property name="margin_top">10</property>
-        <property name="label" translatable="yes">Enter Sequence</property>
+        <property name="label" translatable="yes">Enter sequence to translate to protein sequence</property>
       </object>
       <packing>
         <property name="expand">False</property>
