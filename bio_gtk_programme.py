@@ -1,4 +1,7 @@
+#!/usr/bin/env python3
+
 #CRASHES WHEN TRYING TO GET LARGE FILES FROM ENTREZ e.g. whole chromosomes, fine with single genes
+
 
 import gi
 gi.require_version("Gtk", "3.0")
