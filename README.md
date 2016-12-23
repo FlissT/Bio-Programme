@@ -7,6 +7,7 @@ BioProgram is designed to do basic analysis of DNA sequences. It allows the user
 - Search Pubmed
 - Calculate the complementary sequence
 - Translate the sequence into its amino acids
+
 Results are either displayed in a pop-up window, or written to file.
 
 In order to run, BioProgram requires installation of Python3, GTK3 and Biopython.
