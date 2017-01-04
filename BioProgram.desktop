@@ -4,7 +4,7 @@ Encoding=UTF-8
 Name=BioProgram
 Comment=Flissie's amazing program
 Type=Application
-Path=/home/fliss/Typytypy/Bio_Programme/
+Path=/home/Fliss/Typytypy/Bio_Programme/
 Exec=python3 bio_gtk_programme.py
 Terminal=false
 
