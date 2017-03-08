@@ -427,8 +427,6 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
     def search(self):
         search_author = self.entry1.get_text()
         author_result = []
-        tv = Gtk.TextView()
-        tb = tv.get_buffer()
         for self.record in self.records:
             if not "AU" in self.record:
                 continue
@@ -439,26 +437,28 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
                 if search_author not in self.record["AU"]:
                     self.label2.set_text("Author not found")
                 
-        tb.set_text("".join(author_result))
-        tag = tb.create_tag("bold", weight=Pango.Weight.BOLD)
-        start = tb.get_start_iter()
-        end = tb.get_end_iter()
-        tb.apply_tag(tag, start, end)
-        tv.set_editable(False)
-        tv.set_justification(Gtk.Justification.FILL)
-        tv.set_wrap_mode(Gtk.WrapMode.WORD)
-        sw = Gtk.ScrolledWindow()
-        sw.set_size_request(800,300)
-        sw.add(tv)
-        w = Gtk.Window(title ="Author Search Results for %s" %(search_author))                                                                                                                                                                                                                                                
-        w.add(sw)
+        self.author_result = ("".join(author_result))
+        
+        code = (self.author_result)
+        html = """\
+        <html>
+          <head></head>
+          <body>
+            <p>{code}</p>
+          </body>
+        </html>
+        """.format(code=code)
         self.connect("delete-event", self.on_quit)
 
         def on_button_toggled(checkbutton1, name):
             if self.checkbutton1.get_active():
                 state = "on"
                 if state == "on":
-                    w.show_all()
+                    filename = ("authorresults.html")
+                    file_open = open(filename, "w+")      
+                    file_open.write(str(html))
+                    file_open.close()
+                    webbrowser.open_new_tab(filename)
                     self.disconnect_checkbutton1()
             else:
                 state = "off"
