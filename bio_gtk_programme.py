@@ -2,7 +2,7 @@
 
 #CRASHES WHEN TRYING TO GET LARGE FILES FROM ENTREZ e.g. whole chromosomes, fine with single genes
 
-
+import webbrowser
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Pango
@@ -177,10 +177,11 @@ class RcFrame(Gtk.Bin):
             if self.checkbutton1.get_active():
                 state = "on"
                 if state == "on":#writes to text file, want to write to fasta file
-                    filename = (self.seq_id + ("-revcomp"))
+                    filename = (self.seq_id + ("-revcomp.html"))
                     file_open = open(filename, "w+")
                     file_open.write(str(self.rc_result))
                     file_open.close()
+                    webbrowser.open_new_tab(filename)
                     self.label.set_text(str("Written to text file %s ") % (filename))
                     self.disconnect_checkbutton1()
             else:
@@ -272,10 +273,11 @@ class TrFrame(Gtk.Bin):
             if self.checkbutton1.get_active():
                 state = "on"
                 if state == "on":
-                    filename = str(self.seq_id + ("-translation"))
+                    filename = str(self.seq_id + ("-translation.html"))
                     file_open = open(filename, "w+")
                     file_open.write(str(self.tr_result))
                     file_open.close()
+                    webbrowser.open_new_tab(filename)
                     self.label.set_text(str("Written to text file %s ") % (filename))
                     self.disconnect_checkbutton1()
             else:
@@ -390,38 +392,38 @@ class PbFrame(Gtk.Bin): #opens sequences for later use
         self.records = Medline.parse(handle)
         self.records = list(self.records)
         self.records_str = []
-        tv = Gtk.TextView()
         for self.record in self.records:
-            self.records_str += "Title: %s \nAuthors: %s \nSource: %s\n\n" %(self.record.get("TI"), ", ".join(self.record.get("AU")), self.record.get("SO"))
-            #this causes a typeerror when some words are searched e.g. heart, lung
-            
-        tb = tv.get_buffer()
-        tb.set_text("".join(self.records_str))
-        tag = tb.create_tag("bold", weight=Pango.Weight.BOLD)
-        start = tb.get_start_iter()
-        end = tb.get_end_iter()
-        tb.apply_tag(tag, start, end)
-        tv.set_editable(False)
-        tv.set_justification(Gtk.Justification.FILL)
-        tv.set_wrap_mode(Gtk.WrapMode.WORD)
-        sw = Gtk.ScrolledWindow()
-        sw.set_size_request(800,300)
-        sw.add(tv)
-        w = Gtk.Window(title ="Pubmed Results %s" %(user_input))                                                                                                                                                                                                                                                   
-        w.add(sw)
+                self.records_str += "Title: %s <br> \nAuthors: %s <br> \nSource: %s\n\n <br><br>" %(self.record.get("TI"), ", ".join(self.record.get("AU")), self.record.get("SO"))
+                self.search_result = ("".join(self.records_str)) #this causes a typeerror when some words are searched e.g. heart, lung  
+
+        code = (self.search_result)
+        html = """\
+        <html>
+          <head></head>
+          <body>
+            <p>{code}</p>
+          </body>
+        </html>
+        """.format(code=code)
+
         self.connect("delete-event", self.on_quit)
-        
+
         def on_button_toggled(checkbutton, name):
             if self.checkbutton.get_active():
                 state = "on"
                 if state == "on":
-                    w.show_all()
+                    filename = ("pubmedresults.html")
+                    file_open = open(filename, "w+")      
+                    file_open.write(str(html))
+                    file_open.close()
+                    webbrowser.open_new_tab(filename)
                     self.disconnect_checkbutton()
             else:
                 state = "off"
                 
         self.checkbutton_connect = self.checkbutton.connect("toggled", on_button_toggled, "1")
-
+    
+                    
     def search(self):
         search_author = self.entry1.get_text()
         author_result = []
