@@ -10,4 +10,14 @@ BioProgram is designed to do basic analysis of DNA sequences. It allows the user
 
 Results are either displayed in a pop-up window, or written to file.
 
-In order to run, BioProgram requires installation of Python3, GTK3 and Biopython.
+Usage:
+
+- In order to run, BioProgram requires installation of Python3, GTK3 and Biopython.
+- Download ZIP file from repo
+
+Windows:
+- Run ```bio_gtk_programme``` from command line 
+
+Linux (Fedora):
+- Run from executable 'BioProgram'
+
